@@ -1,5 +1,6 @@
 from textnode import TextNode, TextType
 from htmlnode import HTMLNode, ParentNode, LeafNode
+from conversions import *
 props1 = {
         "href": "https://www.google.com",
         "target": "_blank",
@@ -15,21 +16,7 @@ props2 = {
 
 
 def main():
-	node1 = LeafNode("b", "Hello, world!")
-	node2 = LeafNode("a", "A whole new world.", {"href":"https://oldschool.runecape.com"})
-	node3 = LeafNode("p", "Hello, world!")
-	node = ParentNode("i", [node1, node2, node3], props2)
-	s = node.to_html()
-	print(s)
-	node2 = ParentNode(
-    "p",
-    [
-        LeafNode("b", "Bold text"),
-        LeafNode(None, "Normal text"),
-        LeafNode("i", "italic text"),
-        LeafNode(None, "Normal text"),
-    ],
-	)
-	s2 = node2.to_html()
-	print(s2)
+	split_to_substrings("This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev) and a text at the end.")
+	split_to_substrings("[to boot dev](https://www.boot.dev)[to youtube](https://www.youtube.com/@bootdotdev)")
+	split_to_substrings("This one contains no links.")
 main()
