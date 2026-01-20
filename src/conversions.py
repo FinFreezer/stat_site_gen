@@ -78,31 +78,57 @@ def extract_markdown_links(text):
     return results
 
 def split_nodes_image(old_nodes):
+    end = -1
+    start = 0
+    parts = []
+    result = []
     for node in old_nodes:
-        found_links = extract_markdown_images(node.text)
-        if not found_links:
-            return [node]
-        parts = split_to_substrings(node.text)
-        
+        text = node.text
+        while True:
+            found_links = extract_markdown_images(text)
+            num_found_links = len(found_links)
+            if len == 0:
+                return [node]
+            
+            for i in range(num_found_links):
+                end = text.rfind( ("(" + found_links[i][1] + ")") ) + len("(" + found_links[i][1] + ")")
+                start = text.find( "![" + found_links[i][0] + "]")
+                parts.append(text[:end].rsplit('!', 1))
+                parts[i][1] = "!" + parts[i][1]
+                text = text[end:]
+            break
+    
+    cells = len(parts)
+    for i in range(cells):
+        result.append( TextNode(parts[i][0], TextType.TEXT) )
+        result.append( TextNode(found_links[i][0], TextType.IMAGE, found_links[i][1]) )
+    
+    return result
 
-        
 def split_nodes_link(old_nodes):
-    pass
-
-def split_to_substrings(text):
-    parts = [ ]
-    if (text.count('[') == 0 and text.count(')') == 0):
-        print("No links found.")
-        return
-    while (text.count('[') > 0 and text.count(')') > 0):
-        start = text.find('[')
-        end = text.find(')')+1
-        parts.append ( 
-            [ (text[0:start], text[start:end] ) ] 
-        )
-        text = text[end+1:]
-    if text != "":
-        parts.append([text])
-    print(f"Parts are:")
-    for part in parts:
-        print(part)
+    end = -1
+    start = 0
+    parts = []
+    result = []
+    for node in old_nodes:
+        text = node.text
+        while True:
+            found_links = extract_markdown_links(text)
+            num_found_links = len(found_links)
+            if len == 0:
+                return [node]
+            
+            for i in range(num_found_links):
+                end = text.rfind( ("(" + found_links[i][1] + ")") ) + len("(" + found_links[i][1] + ")")
+                start = text.find( "[" + found_links[i][0] + "]")
+                parts.append(text[:end].rsplit('[', 1))
+                parts[i][1] = "[" + parts[i][1]
+                text = text[end:]
+            break
+    
+    cells = len(parts)
+    for i in range(cells):
+        result.append( TextNode(parts[i][0], TextType.TEXT) )
+        result.append( TextNode(found_links[i][0], TextType.LINK, found_links[i][1]) )
+    
+    return result

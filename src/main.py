@@ -16,7 +16,10 @@ props2 = {
 
 
 def main():
-	split_to_substrings("This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev) and a text at the end.")
-	split_to_substrings("[to boot dev](https://www.boot.dev)[to youtube](https://www.youtube.com/@bootdotdev)")
-	split_to_substrings("This one contains no links.")
+        """node = TextNode(
+        "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) and another ![second image](https://i.imgur.com/3elNhQu.png). " +
+        "And a third for ![good measure](https://i.imgur.com/fthagn123.png). And some filler.",
+                TextType.TEXT,
+        )
+        new_nodes = split_nodes_image([node])"""
 main()
