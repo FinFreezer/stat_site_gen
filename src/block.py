@@ -11,24 +11,34 @@ class BlockType(Enum):
 class Block():
 	def __init__(self, text):
 		self.text = text
-		self.block_type = BlockType
+		self.block_type = None
+		self.tag = None
+
+	def __repr__(self):
+		return f"Block({self.text}, {self.block_type.value}, {self.tag})"
 	
+	def get_text(self):
+		return self.text
+	
+	def get_tag(self):
+		return self.tag
+		
 	def block_to_block_type(self):
 		if self.text[0] == "#" and self.text[6] != "#":
-			self.block_type = "heading"
-			return self.block_type
+			self.block_type = BlockType.HEADING
+			return self.block_type.value
 		
 		if self.text[:4] == "```\n":
-			self.block_type = "code"
-			return self.block_type
+			self.block_type = BlockType.CODE
+			return self.block_type.value
 		
 		if self.text[:2] == "> ":
-			self.block_type = "quote"
-			return self.block_type
+			self.block_type = BlockType.QUOTE
+			return self.block_type.value
 		
 		if self.text[:2] == "- ":
-			self.block_type = "unordered_list"
-			return self.block_type
+			self.block_type = BlockType.UNORDERED_LIST
+			return self.block_type.value
 
 		if self.text[0].isdigit() and self.text[1:3] == ". ":
 			lines = self.text.split("\n")
@@ -42,8 +52,53 @@ class Block():
 					bad_format_flag = True
 
 			if not bad_format_flag:
-				self.block_type = "ordered_list"
-				return self.block_type
+				self.block_type = BlockType.ORDERED_LIST
+				return self.block_type.value
 
-		self.block_type = "paragraph"
-		return self.block_type
+		self.block_type = BlockType.PARAGRAPH
+		return self.block_type.value
+	
+	def add_tag(self):
+		if self.block_type.value == "quote":
+			#f"<blockquote>\n{self.text}\n</blockquote>"
+			self.tag = "blockquote"
+			return 
+
+		if self.block_type.value == "unordered_list":
+			helper_add_list_tags()
+			self.tag = "ul"
+			#self.text = f"<ul>\n{self.text}\n</ul>"
+			return
+
+		if self.block_type.value == "ordered_list":
+			helper_add_list_tags
+			self.tag = "ol"
+			#self.text = f"<ol>\n{self.text}\n</ul>"
+			return
+
+		if self.block_type.value == "code":
+			self.tag = "code"
+			#self.text = f"<code>\n<pre>{self.text}</pre>\n</code>"
+			return
+		
+		if self.block_type.value == "heading":
+			num_heading = self.text.count("#")
+			self.tag = f"h{num_heading}"
+			#self.text = f"<h{num_heading}>\n{self.text}\n</h{num_heading}>"
+			return
+		
+		if self.block_type.value == "paragraph":
+			self.tag = "p"
+			#self.text = self.text.replace("\n", " ")
+			#self.text = f"<p>\n{self.text}\n</p>"
+			return
+		
+		return
+	
+	def helper_add_list_tags(self):
+		parts = self.text.split("\n")
+		for part in parts:
+			part = f"<li>{part}</li>"
+		
+		self.text = "\n".join(parts)
+		return
