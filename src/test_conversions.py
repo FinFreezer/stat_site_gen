@@ -2,6 +2,7 @@ import unittest
 
 from textnode import TextNode, TextType
 from htmlnode import HTMLNode, ParentNode, LeafNode
+from block import BlockType, Block
 from conversions import *
 
 class TestTextNode(unittest.TestCase):
@@ -134,6 +135,47 @@ class TestRegex(unittest.TestCase):
             new_nodes,
         )
 
+        node = TextNode(
+            "![image](https://i.imgur.com/zjjcJKZ.png). This is text.",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+                TextNode(". This is text.", TextType.TEXT),
+            ],
+            new_nodes,
+        )
+
+        node = TextNode(
+            "This is text with no image.",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("This is text with no image.", TextType.TEXT),
+            ],
+            new_nodes,
+        )
+
+        node = TextNode(
+            "![image](https://i.imgur.com/zjjcJKZ.png). This one starts with an image, and includes another one ![different image](https://i.imgur.com/ftaghn.jpg). With some text at the end.",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+                TextNode(". This one starts with an image, and includes another one ", TextType.TEXT),
+                TextNode("different image", TextType.IMAGE, "https://i.imgur.com/ftaghn.jpg"),
+                TextNode(". With some text at the end.", TextType.TEXT)
+            ],
+            new_nodes,
+        )
+
+
     def test_split_links(self):
         node = TextNode(
             "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)",
@@ -150,3 +192,179 @@ class TestRegex(unittest.TestCase):
             ],
             new_nodes,
         )
+
+        node = TextNode(
+            "[to imgur](https://i.imgur.com). This is text.",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("to imgur", TextType.LINK, "https://i.imgur.com"),
+                TextNode(". This is text.", TextType.TEXT),
+            ],
+            new_nodes,
+        )
+
+        node = TextNode(
+            "This is text with no link.",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("This is text with no link.", TextType.TEXT),
+            ],
+            new_nodes,
+        )
+
+        node = TextNode(
+            "[reddit](www.reddit.com). This one starts with a link, and includes another one [boot dot dev](https://www.boot.dev). With some text at the end.",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("reddit", TextType.LINK, "www.reddit.com"),
+                TextNode(". This one starts with a link, and includes another one ", TextType.TEXT),
+                TextNode("boot dot dev", TextType.LINK, "https://www.boot.dev"),
+                TextNode(". With some text at the end.", TextType.TEXT)
+            ],
+            new_nodes,
+        )
+
+        node = TextNode(
+            "This one starts with text. [reddit](www.reddit.com). Includes a second link: [boot dot dev](https://www.boot.dev). And a third link: [YTP](ytb.com/qdEFWEF).",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("This one starts with text. ", TextType.TEXT),
+                TextNode("reddit", TextType.LINK, "www.reddit.com"),
+                TextNode(". Includes a second link: ", TextType.TEXT),
+                TextNode("boot dot dev", TextType.LINK, "https://www.boot.dev"),
+                TextNode(". And a third link: ", TextType.TEXT),
+                TextNode("YTP", TextType.LINK, "ytb.com/qdEFWEF"),
+                TextNode(".", TextType.TEXT)
+            ],
+            new_nodes,
+        )
+
+class TestTotalConversion(unittest.TestCase):
+    def test_full_line(self):
+        #node = TextNode("This is **text** with an _italic_ word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)", TextType.TEXT)
+        result = text_to_textnodes("This is **text** with an _italic_ word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)")
+        self.assertEqual( (
+            [
+            TextNode("This is ", TextType.TEXT),
+            TextNode("text", TextType.BOLD),
+            TextNode(" with an ", TextType.TEXT),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(" word and a ", TextType.TEXT),
+            TextNode("code block", TextType.CODE),
+            TextNode(" and an ", TextType.TEXT),
+            TextNode("obi wan image", TextType.IMAGE, "https://i.imgur.com/fJRm4Vk.jpeg"),
+            TextNode(" and a ", TextType.TEXT),
+            TextNode("link", TextType.LINK, "https://boot.dev"),
+            ]
+            ), result)
+    
+    def test_markdown_to_blocks(self):
+        md = """
+#This is a header
+
+This is **bolded** paragraph
+
+This is another paragraph with _italic_ text and `code` here
+This is the same paragraph on a new line
+
+- This is a list
+- with items
+
+
+One more paragraph.
+"""
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(
+            blocks,
+            [
+                "#This is a header",
+                "This is **bolded** paragraph",
+                "This is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line",
+                "- This is a list\n- with items",
+                "One more paragraph."
+            ],
+        )
+    
+        md = """
+
+# Heading with extra newlines above
+
+
+This paragraph has some text.
+
+- List item 1
+- List item 2
+
+
+Another paragraph here.
+It continues on the next line.
+
+
+
+Yet another block after many newlines.
+
+"""
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(
+            blocks,
+            [
+                "# Heading with extra newlines above",
+                "This paragraph has some text.",
+                "- List item 1\n- List item 2",
+                "Another paragraph here.\nIt continues on the next line.",
+                "Yet another block after many newlines."
+            ],
+        )
+
+    def test_block_to_block_type(self):
+        block = "###This is a header"
+        b1 = Block(block)
+        self.assertEqual(b1.block_to_block_type(), "heading")
+
+        block = """```
+This is code
+```"""
+        b2 = Block(block)
+        self.assertEqual(b2.block_to_block_type(), "code")
+
+        block = """1. First line
+2. Second line
+3. Third line."""
+        b3 = Block(block)
+        self.assertEqual(b3.block_to_block_type(), "ordered_list")
+
+        block ="""3. First Line
+4. Second line
+5. Third line."""
+        b4 = Block(block)
+        self.assertEqual(b4.block_to_block_type(), "ordered_list")
+
+        block = """7. First line
+8. Second line
+4. Third line"""
+        b5 = Block(block)
+        self.assertEqual(b5.block_to_block_type(), "paragraph")
+
+        block = "> This is a quote"
+        b6 = Block(block)
+        self.assertEqual(b6.block_to_block_type(), "quote")
+
+        block = "#######This is a header"
+        b7 = Block(block)
+        self.assertNotEqual(b7.block_to_block_type(), "heading")
+
+        block = "- This is an\n- Unordered list\n- With some data"
+        b8 = Block(block)
+        self.assertEqual(b8.block_to_block_type(), "unordered_list")
