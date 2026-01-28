@@ -148,8 +148,13 @@ def text_to_textnodes(text):
     return results
 
 def markdown_to_blocks(markdown):
-    parts = markdown.split("\n\n")
     results = []
+    """if markdown.find("```") != -1:
+        markdown = markdown.strip("\n")
+        markdown = markdown.replace("```\n", "```")
+        results.append(markdown)
+        return results"""
+    parts = markdown.split("\n\n")
     for part in parts:
         if part != '':
             results.append("\n".join(part.strip().split("\n")))

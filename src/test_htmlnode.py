@@ -107,6 +107,40 @@ the **same** even with inline stuff
             html,
             "<div><pre><code>This is text that _should_ remain\nthe **same** even with inline stuff\n</code></pre></div>",
         )
+    
+    def test_large_block(self):
+        md = """
+# Header One
+
+This is a **bold** and _italic_ paragraph with `code` inside.
+
+> This is a quote
+> that spans **two** lines
+
+1. First ordered item with **bold**
+2. Second ordered item with `code`
+3. Third ordered item with _italics_
+
+- Unordered **one**
+- Unordered _two_
+- Unordered `three`
+
+```
+Code block _with_ **markdown** that should stay the same
+And another line
+```
+"""
+
+        result = """<div><h1>Header One</h1><p>This is a <b>bold</b> and <i>italic</i> paragraph with <code>code</code> inside.</p><blockquote><p>This is a quote that spans <b>two</b> lines</p></blockquote><ol><li>First ordered item with <b>bold</b></li><li>Second ordered item with <code>code</code></li><li>Third ordered item with <i>italics</i></li></ol><ul><li>Unordered <b>one</b></li><li>Unordered <i>two</i></li><li>Unordered <code>three</code></li></ul><pre><code>Code block _with_ **markdown** that should stay the same
+And another line
+</code></pre></div>"""
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            result,
+        )
 
 if __name__ == "__main__":
     unittest.main()
+    

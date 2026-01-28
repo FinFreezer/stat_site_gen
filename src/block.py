@@ -13,6 +13,7 @@ class Block():
 		self.text = text
 		self.block_type = None
 		self.tag = None
+		self.parts = [ ]
 
 	def __repr__(self):
 		return f"Block({self.text}, {self.block_type.value}, {self.tag})"
@@ -28,11 +29,13 @@ class Block():
 			self.block_type = BlockType.HEADING
 			return self.block_type.value
 		
-		if self.text[:4] == "```\n":
+		if self.text.find("```") != -1:
+			self.text = self.text.replace("```\n", "```")
 			self.block_type = BlockType.CODE
 			return self.block_type.value
 		
 		if self.text[:2] == "> ":
+			self.text.replace("> ", "")
 			self.block_type = BlockType.QUOTE
 			return self.block_type.value
 		
@@ -56,49 +59,85 @@ class Block():
 				return self.block_type.value
 
 		self.block_type = BlockType.PARAGRAPH
+		self.text = self.text.replace("\n", " ")
 		return self.block_type.value
 	
 	def add_tag(self):
 		if self.block_type.value == "quote":
-			#f"<blockquote>\n{self.text}\n</blockquote>"
+			print(self.text)
+			self.text = self.text.replace("> ", "")
 			self.tag = "blockquote"
 			return 
 
 		if self.block_type.value == "unordered_list":
-			helper_add_list_tags()
+			self.helper_add_list_tags_ul()
 			self.tag = "ul"
-			#self.text = f"<ul>\n{self.text}\n</ul>"
 			return
 
 		if self.block_type.value == "ordered_list":
-			helper_add_list_tags
+			self.helper_add_list_tags_ol()
 			self.tag = "ol"
-			#self.text = f"<ol>\n{self.text}\n</ul>"
 			return
 
 		if self.block_type.value == "code":
 			self.tag = "code"
-			#self.text = f"<code>\n<pre>{self.text}</pre>\n</code>"
 			return
 		
 		if self.block_type.value == "heading":
 			num_heading = self.text.count("#")
+			replace = ""
+			for i in range(num_heading):
+				replace += "#"
+			self.text = self.text.replace(replace, "")
 			self.tag = f"h{num_heading}"
-			#self.text = f"<h{num_heading}>\n{self.text}\n</h{num_heading}>"
 			return
 		
 		if self.block_type.value == "paragraph":
 			self.tag = "p"
-			#self.text = self.text.replace("\n", " ")
-			#self.text = f"<p>\n{self.text}\n</p>"
 			return
 		
 		return
 	
-	def helper_add_list_tags(self):
+	def helper_add_list_tags_ul(self):
+		self.text = self.text.replace("- ", "")
 		parts = self.text.split("\n")
+		wrapped_parts = []
 		for part in parts:
-			part = f"<li>{part}</li>"
-		
-		self.text = "\n".join(parts)
+			wrapped_parts.append(f"<li>{part}</li>")
+		self.text = "\n".join(wrapped_parts)
+		self.text = self.text.replace("\n", "")
 		return
+
+	def helper_add_list_tags_ol(self):
+		parts = self.text.split("\n")
+		fixed_parts = []
+		
+		for part in parts:
+			index = 0
+			for char in part:
+				if char.isdigit():
+					index += 1
+				else:
+					fixed_parts.append(part[index+2:])
+					break
+
+		wrapped_parts = []
+		for part in fixed_parts:
+			wrapped_parts.append(f"<li>{part}</li>")
+		self.text = "\n".join(wrapped_parts)
+		self.text = self.text.replace("\n", "")
+		return
+
+	def to_html(self):
+		if self.tag == "code":
+			full_html = f"<pre>"
+		else:
+			full_html = f"<{self.tag}>"
+
+		for part in self.parts:
+			full_html += part.to_html()
+
+		if self.tag == "code":
+			return full_html + f"</pre>"
+		else:
+			return full_html + f"</{self.tag}>"
