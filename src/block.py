@@ -35,7 +35,6 @@ class Block():
 			return self.block_type.value
 		
 		if self.text[:2] == "> ":
-			self.text.replace("> ", "")
 			self.block_type = BlockType.QUOTE
 			return self.block_type.value
 		
@@ -64,8 +63,9 @@ class Block():
 	
 	def add_tag(self):
 		if self.block_type.value == "quote":
-			print(self.text)
 			self.text = self.text.replace("> ", "")
+			self.text = self.text.replace("\n", " ")
+			self.text = (f"<p>{self.text}</p>")
 			self.tag = "blockquote"
 			return 
 
@@ -89,6 +89,7 @@ class Block():
 			for i in range(num_heading):
 				replace += "#"
 			self.text = self.text.replace(replace, "")
+			self.text = self.text[1:]
 			self.tag = f"h{num_heading}"
 			return
 		
