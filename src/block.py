@@ -84,11 +84,11 @@ class Block():
 			return
 		
 		if self.block_type.value == "heading":
-			num_heading = self.text.count("#")
+			num_heading = self.helper_count_repeating_instances("#")
 			replace = ""
 			for i in range(num_heading):
 				replace += "#"
-			self.text = self.text.replace(replace, "")
+			self.text = self.text.replace(replace, "", 1)
 			self.text = self.text[1:]
 			self.tag = f"h{num_heading}"
 			return
@@ -98,7 +98,16 @@ class Block():
 			return
 		
 		return
-	
+
+	def helper_count_repeating_instances(self, instance):
+		num_instances = 0
+		start = self.text.find(instance)
+		if start != -1:
+			num_instances += 1
+			while self.text[start + num_instances] == instance:
+				num_instances += 1
+		return num_instances
+		
 	def helper_add_list_tags_ul(self):
 		self.text = self.text.replace("- ", "")
 		parts = self.text.split("\n")

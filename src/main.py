@@ -1,7 +1,7 @@
 from textnode import TextNode, TextType
 from htmlnode import HTMLNode, ParentNode, LeafNode
 from conversions import *
-from build_page import markdown_to_html_node
+from build_page import markdown_to_html_node, generate_page
 import os
 import shutil
 
@@ -26,7 +26,7 @@ def copy_contents(source, destination):
         for sdir in subdirs:
                 src = os.path.join(source, sdir)
                 dst = os.path.join(destination, sdir)
-                if not os.path.exists(dst) and os.path.isdir(src):
+                if not os.path.exists(dst):
                         os.mkdir(dst)
                         LOG_FILE += f"Created folder {dst}\n"
                 copy_contents(src, dst)
@@ -34,7 +34,6 @@ def copy_contents(source, destination):
 
 def initialize_public(source, destination):
         global LOG_FILE
-        path = "./public"
         if os.path.exists(destination):
                 shutil.rmtree(destination)
         os.mkdir(destination)
@@ -46,4 +45,12 @@ def main():
         source_path = "./static"
         dest_path = "./public"
         initialize_public(source_path, dest_path)
+        source_file = "./content/index.md"
+        template_file = "template.html"
+        destination_file = "./public/index.html"
+        generate_page(source_file, template_file, destination_file)
+
 main()
+
+if __name__ == "__main__":
+        main()
