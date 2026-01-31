@@ -1,9 +1,10 @@
 from textnode import TextNode, TextType
 from htmlnode import HTMLNode, ParentNode, LeafNode
 from conversions import *
-from build_page import markdown_to_html_node, generate_pages_recursive, generate_page
+from build_page import markdown_to_html_node, generate_pages_recursive
 import os
 import shutil
+import sys
 
 LOG_FILE = ""
 
@@ -44,14 +45,22 @@ def initialize_public(source, destination):
         return
 
 def main():
-        source_path = "./static"
-        dest_path = "./public"
+        if len(sys.argv) == 2:
+                basepath = sys.argv[1]
+        else:
+                basepath = "/"
+        source_path = "static"
+        dest_path = "docs"
         initialize_public(source_path, dest_path)
+        """
         source_file = "./content/index.md"
         template_file = "template.html"
-        destination_file = "./public/index.html"
+        destination_file = "./docs/index.html"
+        """
+        source_path = "content"
         #generate_page(source_file, template_file, destination_file)
-        generate_pages_recursive("./content", "template.html", "./public")
+        #generate_pages_recursive("./content", "template.html", "./public")
+        generate_pages_recursive(source_path, "template.html", dest_path, basepath)
 
 main()
 
