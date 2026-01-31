@@ -51,6 +51,15 @@ def generate_page(from_path, template_path, dest_path):
 		os.makedirs(os.path.dirname(dest_path))
 	write_file(dest_path, template)
 
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+	print(f"\nReading content from {dir_path_content} to {dest_dir_path} with {template_path}")
+	contents = os.listdir(dir_path_content)
+	for part in contents:
+		path = os.path.join(dir_path_content, part)
+		if os.path.isdir(path):
+			generate_pages_recursive(path, template_path, os.path.join(dest_dir_path, part))
+		elif os.path.isfile(path):
+			generate_page(path, template_path, os.path.join(dest_dir_path, "index.html"))
 
 def read_file(filepath):
 	try:

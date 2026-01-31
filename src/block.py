@@ -65,7 +65,7 @@ class Block():
 		if self.block_type.value == "quote":
 			self.text = self.text.replace("> ", "")
 			self.text = self.text.replace("\n", " ")
-			self.text = (f"<p>{self.text}</p>")
+			#self.text = (f"<p>{self.text}</p>")
 			self.tag = "blockquote"
 			return 
 

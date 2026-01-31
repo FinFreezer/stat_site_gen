@@ -1,7 +1,7 @@
 from textnode import TextNode, TextType
 from htmlnode import HTMLNode, ParentNode, LeafNode
 from conversions import *
-from build_page import markdown_to_html_node, generate_page
+from build_page import markdown_to_html_node, generate_pages_recursive, generate_page
 import os
 import shutil
 
@@ -21,6 +21,8 @@ def copy_contents(source, destination):
         for file in files:
                 src = os.path.join(source, file)
                 dst = os.path.join(destination, file)
+                if os.path.exists(dst):
+                        continue
                 shutil.copy(src, dst)
                 LOG_FILE += f"Copied file to {dst}\n"
         for sdir in subdirs:
@@ -38,7 +40,7 @@ def initialize_public(source, destination):
                 shutil.rmtree(destination)
         os.mkdir(destination)
         copy_contents(source, destination)
-        print(LOG_FILE)
+        #print(LOG_FILE)
         return
 
 def main():
@@ -48,7 +50,8 @@ def main():
         source_file = "./content/index.md"
         template_file = "template.html"
         destination_file = "./public/index.html"
-        generate_page(source_file, template_file, destination_file)
+        #generate_page(source_file, template_file, destination_file)
+        generate_pages_recursive("./content", "template.html", "./public")
 
 main()
 
